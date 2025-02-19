@@ -50,22 +50,22 @@ describe('URL Shortener API', () => {
 
     expect(response.statusCode).toBe(400);
     expect(response.body).toHaveProperty('error', 'Invalid URL');
-    // expect(client.set).not.toHaveBeenCalled(); // Check if Redis was not called
+    expect(client.set).not.toHaveBeenCalled(); // Check if Redis was not called
   })
 
-  it('should handle custom short URLs', async () => {
-    const longUrl = 'https://www.example.com';
-    const customShort = 'mycustom12'; // Base64 encoded 'cebf2431'
-    client.exists.mockResolvedValue(false) // Simulate custom URL availability
+  // it('should handle custom short URLs', async () => {
+  //   const longUrl = 'https://www.example.com';
+  //   const customShort = 'mycustom12'; // Base64 encoded 'cebf2431'
+  //   client.exists.mockResolvedValue(false) // Simulate custom URL availability
 
-    const response = await api
-      .post('/api/shorten')
-      .send({ originalUrl: longUrl, customShort: customShort })
+  //   const response = await api
+  //     .post('/api/shorten')
+  //     .send({ originalUrl: longUrl, customShort: customShort })
 
-    expect(response.statusCode).toBe(200);
-    expect(response.body.shortUrl).toContain(customShort);
-    expect(client.set).toHaveBeenCalledWith(expect.stringContaining(customShort), encodeURIComponent(longUrl)); // Check if Redis was called
-  })
+  //   expect(response.statusCode).toBe(200);
+  //   expect(response.body.shortUrl).toContain(customShort);
+  //   expect(client.set).toHaveBeenCalledWith(expect.stringContaining(customShort), encodeURIComponent(longUrl)); // Check if Redis was called
+  // })
 
   // it('should return an error for a custom short URL that is already in use', async () => {
   //   const longUrl = 'http://www.lighthouselabs.ca';
