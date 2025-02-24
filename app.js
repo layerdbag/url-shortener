@@ -2,7 +2,6 @@ const express = require('express')
 const app = express()
 const redis = require('redis')
 const config = require('./utils/config')
-const { URL } = require('url') // URL is a built-in module in Node.js
 const validUrl = require('valid-url')
 const { generateShortHash, generateUniqueShortUrl } = require('./utils/helper')
 const middleware = require('./utils/middleware')
@@ -22,12 +21,6 @@ let client
 
 
 app.use(express.json())
-
-// const urlDatabase = {
-//   'b2xVn2': 'http://www.lighthouselabs.ca',
-//   '9sm5xK': 'http://www.google.com',
-// };
-
 
 
 app.post('/api/shorten', async (req, res) => {
