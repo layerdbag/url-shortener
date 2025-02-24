@@ -4,7 +4,7 @@ const redis = require('redis')
 const config = require('./utils/config')
 const { URL } = require('url') // URL is a built-in module in Node.js
 const validUrl = require('valid-url')
-const { generateShortHash, generateUniqueShortUrl } = require('./utils/helper_functions')
+const { generateShortHash, generateUniqueShortUrl } = require('./utils/helper')
 const middleware = require('./utils/middleware')
 
 // console.log('connecting to', config.REDIS_URI)
@@ -52,7 +52,7 @@ app.post('/api/shorten', async (req, res) => {
   // Store the short URL and original URL in Redis
   try {
     await client.set(shortUrl, encodeURIComponent(originalUrl));
-    res.json({ shortUrl: `http://localhost:${config.PORT}/${shortUrl}` });
+    res.status(201).json({ shortUrl: `http://localhost:${config.PORT}/${shortUrl}` });
   } catch (err) { // Initial set failed (possible collision)
     console.error("First Redis set error:", err);
 
@@ -62,7 +62,7 @@ app.post('/api/shorten', async (req, res) => {
       try {
         shortUrl = await generateUniqueShortUrl(originalUrl); // Generate a new short URL
         await client.set(shortUrl, encodeURIComponent(originalUrl)); // Try again
-        res.json({ shortUrl: `http://localhost:${config.PORT}/${shortUrl}` }); // Success!
+        res.status(201).json({ shortUrl: `http://localhost:${config.PORT}/${shortUrl}` }); // Success!
       } catch (secondErr) { // Second set failed
         console.error("Second Redis set error:", secondErr);
         return res.status(500).json({ error: 'Internal server error' }); // Some other Redis error
@@ -74,16 +74,18 @@ app.post('/api/shorten', async (req, res) => {
 });
 
 
-// app.get('/api/:shortUrl', (req, res) => {
-//   const { shortUrl } = req.params;
-//   // console.log(urlDatabase)
-//   // const originalUrl = urlDatabase[shortUrl];
-//   if (shortUrl) {
-//     res.send(shortUrl);
-//   } else {
-//     res.status(404).send('URL not found');
-//   }
-// });
+app.get('/api/:shortUrl', async (req, res) => {
+  const { shortUrl } = req.params;
+
+  // Retrieve the original URL from Redis
+  const originalUrl = await client.get(shortUrl);
+  if (originalUrl) {
+    res.redirect(302, decodeURIComponent(originalUrl));
+  }
+  else {
+    res.status(404).json({ error: 'Short URL not found' });
+  }
+});
 
 
 app.use(middleware.unknownEndpoint);
